@@ -14,11 +14,12 @@ API_KEY = os.getenv("POLYGON_API_KEY")
 CACHE = "api_response_cache"
 TIMESPANS =  set(['second', 'minute', 'hour', 'day', 'week', 'month', 'quater', 'quater', 'year'])
 
-class PolygonGraphBuilder:
+class MarketDataHandler:
+
     def __init__(self):
         self.cache = APIReqestCache(cache_dir=CACHE)
 
-    def generate_daily_graph(self, ticker : str, timespan : str, multiplier : str, date : str):
+    def generate_candle_plot(self, ticker : str, timespan : str, multiplier : str, date : str):
         market_open, market_close = self.market_open_close(date)
 
         url = f"""https://api.polygon.io/v2/aggs/ticker/{ticker}/range/{multiplier}/{timespan}/{market_open}/{market_close}?adjusted=true&sort=asc&apiKey={API_KEY}"""
@@ -69,6 +70,13 @@ class PolygonGraphBuilder:
         market_close = int(market_close_dt.timestamp() * 1000)
         
         return market_open, market_close
+    
+    def fetch_eod_options_oi_data(self, ticker : str, expiration_date : str, as_of:str, type : str, expired : bool = True, limit : int = 1000):
+        url = f"""https://api.polygon.io/v3/options/contracts?underlying_ticker={ticker}&contract_type={type}&expiration_date={expiration_date}&as_of={as_of}&expired={expired}&limit={limit}&apiKey={API_KEY}"""
+        
+        self.cache.make_query(url)
+
+
 
 
 def main() -> None:
@@ -79,11 +87,18 @@ def main() -> None:
     timespan = "minute"
     date_str = "2024-10-24"
 
-    graph_builder = PolygonGraphBuilder()
-    graph_builder.generate_daily_graph(ticker, timespan, multiplier, date_str)
-    
-    plt.show()
+    graph_builder = MarketDataHandler()
+    graph_builder.generate_candle_plot(ticker, timespan, multiplier, date_str)
 
+    ticker = "ASML"
+    expiration_date = "2024-10-25"
+    as_of = "2024-10-25"
+    type = "call"
+
+    graph_builder.fetch_eod_options_oi_data(ticker, expiration_date, as_of, type)
+
+
+    
 
 if __name__ == "__main__":
     main()
