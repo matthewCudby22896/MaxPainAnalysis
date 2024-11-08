@@ -26,7 +26,6 @@ function App() {
       .catch((error) => console.error("Error fetcing data:", error))
   }
 
-
   return (
       <div className="grid grid-cols-3 gap-4 w-screen h-screen box-border">
         <div className="bg-blue-400 w-full h-full p-2 ">
